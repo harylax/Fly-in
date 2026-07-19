@@ -100,6 +100,7 @@ def parse_to_dict(map_file: str) -> dict[str, Any]:
 
 
 def parse_metadata(s: str) -> dict[str, str]:
+    s = s.strip()
     s = s.strip('[]')
     raw: list[str] = s.split()
 
