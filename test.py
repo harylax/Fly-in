@@ -25,7 +25,7 @@ def redraw_window(x: int, y: int) -> None:
 
     screen.blit(BACKGROUND, (0, 0))
 
-    pygame.draw.circle(screen, (0, 255, 0), (50, 400), 30)
+    pygame.draw.circle(screen, (0, 190, 20), (50, 400), 30)
     screen.blit(DRONE_IMG, (x, y))
 
     # pygame.draw.rect(screen, (0, 255, 0), (x, y, 50, 50))
