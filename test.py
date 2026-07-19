@@ -2,15 +2,16 @@ import pygame
 
 pygame.init()
 
-WIDTH = 1600
-HEIGHT = 800
+WIDTH = 1200
+HEIGHT = 600
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Déplacement")
 
 clock = pygame.time.Clock()
 
-BACKGROUND = pygame.image.load('isometric-city-bg-1600x800-darker.png')
+bg = pygame.image.load('isometric-city-bg-1600x800-darker.png')
+BACKGROUND = pygame.transform.smoothscale(bg, (WIDTH, HEIGHT))
 drone = pygame.image.load('drone-isometric-facing-right.png')
 DRONE_IMG = pygame.transform.smoothscale(drone, (100, 100))
 
