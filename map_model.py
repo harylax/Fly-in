@@ -1,13 +1,18 @@
 from enum import Enum
 import sys
 try:
-    from pydantic import BaseModel, Field, ValidationError
+    from pydantic import BaseModel, Field  # type: ignore
 except ImportError as err:
     print(f"Import Error: {err}")
     print("Please, install pydantic before any run.")
-    print("Usage:\nsource venv/bin/activate\npython3 -m pip install pydantic")
+    print(
+        "Usage:\npython3 -m venv venv"
+        "\nsource venv/bin/activate"
+        "\npython3 -m pip install pydantic"
+        )
     sys.exit(1)
 from parse_map import parsed_map, parse_to_dict
+from typing import Any
 
 
 class Zone(Enum):
@@ -41,7 +46,8 @@ class Hub(BaseModel):
     zone: Zone = Field(default=Zone.normal)
     color: Color = Field(default=Color.none)
     max_drones: int = Field(default=1)
-    current_drones: int = Field(default=0)
+    current_drones: list[Any] = []
+    # current_drones: int = Field(default=0)
 
 
 class Connection(BaseModel):
@@ -51,10 +57,22 @@ class Connection(BaseModel):
     max_link_capacity: int = Field(default=1)
 
 
+class Drone:
+    def __init__(self, id: int = 0) -> None:
+        self.id: int = id
+        self.zone: Hub | Connection | None = None
+
+
 class Map:
     def __init__(self, map_file: str) -> None:
         map = parsed_map(parse_to_dict(map_file))
-        self.nb_drones: int = map['nb_drones']
+
+        try:
+            self.nb_drones: int = int(map['nb_drones'])
+        except ValueError as err:
+            print(err)
+            sys.exit(1)
+
         self.start_hub: Hub = Hub(
             name=map['start_hub'][0],
             x=map['start_hub'][1],
@@ -63,6 +81,7 @@ class Map:
             color=map['start_hub'][3].get('color', Color.none),
             max_drones=map['start_hub'][3].get('max_drones', 1)
         )
+
         self.hubs: list[Hub] = [
             Hub(
                 name=hub[0],
@@ -73,6 +92,7 @@ class Map:
                 max_drones=hub[3].get('max_drones', 1)
             ) for hub in map['hubs']
         ]
+
         self.end_hub: Hub = Hub(
             name=map['end_hub'][0],
             x=map['end_hub'][1],
@@ -81,6 +101,7 @@ class Map:
             color=map['end_hub'][3].get('color'),
             max_drones=map['end_hub'][3].get('max_drones', 1)
         )
+
         self.connections: list[Connection] = [
             Connection(
                 name=link[0],
@@ -88,6 +109,10 @@ class Map:
                 destination=self.get_hub(self.hubs, link[2]),
                 max_link_capacity=link[3].get('max_link_capacity', 1)
             ) for link in map['connections']
+        ]
+
+        self.drones: list[Drone] = [
+            Drone(i) for i in range(1, self.nb_drones + 1)
         ]
 
     def get_hub(self, hubs: list[Hub], name: str) -> Hub | None:
@@ -105,12 +130,17 @@ class Map:
         for i, link in enumerate(self.connections, start=1):
             connections += f"connection {i}: {link}\n"
 
+        drones: str = ''
+        for drone in self.drones:
+            drones += f"drone D{drone.id}-{drone.zone}\n"
+
         return (
             f"nb_drones: {self.nb_drones}\n\n"
             f"start_hub: {self.start_hub}\n\n"
             f"{hubs}\n"
             f"end_hub: {self.end_hub}\n\n"
-            f"{connections}"
+            f"{connections}\n"
+            f"{drones}"
         )
 
 
@@ -119,3 +149,4 @@ if __name__ == "__main__":
 
     map = Map(map_file)
     print(map)
+

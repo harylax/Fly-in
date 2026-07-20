@@ -166,3 +166,4 @@ if __name__ == "__main__":
 
     for i, connection in enumerate(connections, start=1):
         print(f"connection {i}: {connection}")
+
