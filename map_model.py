@@ -47,7 +47,6 @@ class Hub(BaseModel):
     color: Color = Field(default=Color.none)
     max_drones: int = Field(default=1)
     current_drones: list[Any] = []
-    # current_drones: int = Field(default=0)
 
 
 class Connection(BaseModel):
@@ -86,6 +85,17 @@ class Map:
 
         self.start_hub: Hub = self.hubs[0]
         self.end_hub: Hub = self.hubs[-1]
+
+        # METTRE DANS UN VALIDATE AVEC D'AUTRE POSSIBLES ERR
+        if self.end_hub.max_drones < self.nb_drones:
+            print(
+                "Error in the map file:\n"
+                f"the end hub '{self.end_hub.name}' "
+                "cannot have all the drone.\n"
+                f"Max drone: {self.end_hub.max_drones}, "
+                f"drones: {self.nb_drones}"
+                )
+            sys.exit(1)
 
         self.connections: list[Connection] = [
             Connection(
