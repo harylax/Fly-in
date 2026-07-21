@@ -73,15 +73,6 @@ class Map:
             print(err)
             sys.exit(1)
 
-        self.start_hub: Hub = Hub(
-            name=map['start_hub'][0],
-            x=map['start_hub'][1],
-            y=map['start_hub'][2],
-            zone=map['start_hub'][3].get('zone', Zone.normal),
-            color=map['start_hub'][3].get('color', Color.none),
-            max_drones=map['start_hub'][3].get('max_drones', 1)
-        )
-
         self.hubs: list[Hub] = [
             Hub(
                 name=hub[0],
@@ -93,14 +84,8 @@ class Map:
             ) for hub in map['hubs']
         ]
 
-        self.end_hub: Hub = Hub(
-            name=map['end_hub'][0],
-            x=map['end_hub'][1],
-            y=map['end_hub'][2],
-            zone=map['end_hub'][3].get('zone', Zone.normal),
-            color=map['end_hub'][3].get('color'),
-            max_drones=map['end_hub'][3].get('max_drones', 1)
-        )
+        self.start_hub: Hub = self.hubs[0]
+        self.end_hub: Hub = self.hubs[-1]
 
         self.connections: list[Connection] = [
             Connection(
@@ -136,9 +121,9 @@ class Map:
 
         return (
             f"nb_drones: {self.nb_drones}\n\n"
-            f"start_hub: {self.start_hub}\n\n"
+            f"start_hub: {self.hubs[0]}\n\n"
             f"{hubs}\n"
-            f"end_hub: {self.end_hub}\n\n"
+            f"end_hub: {self.hubs[-1]}\n\n"
             f"{connections}\n"
             f"{drones}"
         )
@@ -149,4 +134,3 @@ if __name__ == "__main__":
 
     map = Map(map_file)
     print(map)
-
