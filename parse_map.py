@@ -14,6 +14,7 @@ def parse_to_dict(map_file: str) -> dict[str, Any]:
             raw = f.read()
     except OSError as err:
         print(f"Map error: {err}", file=sys.stderr)
+        sys.exit(1)
 
     if not raw:
         print("Map error: empty file.", file=sys.stderr)
@@ -145,7 +146,8 @@ def parsed_map(map: dict[str, Any]) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    map_file = 'maps/hard/03_ultimate_challenge.txt'
+    # map_file = 'maps/hard/03_ultimate_challenge.txt'
+    map_file = 'test.txt'
 
     raw = parse_to_dict(map_file)
     map = parsed_map(raw)
@@ -166,4 +168,3 @@ if __name__ == "__main__":
 
     for i, connection in enumerate(connections, start=1):
         print(f"connection {i}: {connection}")
-

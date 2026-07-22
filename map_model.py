@@ -59,7 +59,8 @@ class Connection(BaseModel):
 class Drone:
     def __init__(self, id: int = 0) -> None:
         self.id: int = id
-        self.zone: Hub | Connection | None = None
+        self.zone: Hub | None = None
+        self.restricted: bool = False
 
 
 class Map:
