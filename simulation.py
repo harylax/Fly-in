@@ -267,10 +267,7 @@ class Simulation:
             for h in self.map.hubs:
                 if h.zone == Zone.restricted:
                     for d in h.current_drones:
-                        if d.restricted:
-                            d.restricted = False
-                        else:
-                            d.restricted = True
+                        d.restricted = not d.restricted
 
             moved_this_turn: set[int] = set()
 
@@ -347,8 +344,8 @@ if __name__ == "__main__":
     # map = Map('maps/easy/03_basic_capacity.txt')
     # map = Map('maps/medium/01_dead_end_trap.txt')
     # map = Map('maps/medium/02_circular_loop.txt')
-    # map = Map('maps/medium/03_priority_puzzle.txt')
-    map = Map('maps/test.txt')
+    map = Map('maps/medium/03_priority_puzzle.txt')
+    # map = Map('maps/test.txt')
 
     simulation = Simulation(map)
 
@@ -377,7 +374,7 @@ if __name__ == "__main__":
     # simulation.simple_fork_solve()
     # simulation.dead_end_solve()
     # simulation.restricted_solve()
-    simulation.circular_solve()
+    simulation.priority_solve()
 
     result: list[str] = []
     for i, moves in enumerate(simulation.drones_moves):

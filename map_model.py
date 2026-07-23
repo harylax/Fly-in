@@ -37,6 +37,28 @@ class Color(Enum):
     lime = "lime"
     magenta = "magenta"
     gold = "gold"
+    white = "white"
+
+    @property
+    def rgb(self) -> tuple[int, int, int]:
+        color_dict: dict[
+            Color, tuple[int, int, int]
+            ] = {
+            Color.green: (30, 140, 30),
+            Color.blue: (30, 60, 150),
+            Color.yellow: (180, 160, 40),
+            Color.orange: (200, 100, 20),
+            Color.red: (170, 40, 40),
+            Color.purple: (100, 40, 150),
+            Color.cyan: (30, 130, 130),
+            Color.none: (80, 80, 80),
+            Color.brown: (100, 60, 30),
+            Color.lime: (90, 150, 40),
+            Color.magenta: (140, 40, 140),
+            Color.gold: (170, 140, 20),
+            Color.white: (200, 200, 200)
+        }
+        return color_dict[self]
 
 
 class Hub(BaseModel):
@@ -46,7 +68,7 @@ class Hub(BaseModel):
     zone: Zone = Field(default=Zone.normal)
     color: Color = Field(default=Color.none)
     max_drones: int = Field(default=1)
-    current_drones: list[Any] = []
+    current_drones: list[Any] = Field(default_factory=list)
 
 
 class Connection(BaseModel):
@@ -65,7 +87,7 @@ class Drone:
 
 class Map:
     def __init__(self, map_file: str) -> None:
-        map = parsed_map(parse_to_dict(map_file))
+        map: dict[str, Any] = parsed_map(parse_to_dict(map_file))
 
         try:
             self.nb_drones: int = int(map['nb_drones'])
