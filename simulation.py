@@ -174,7 +174,20 @@ class Simulation:
             links, key=lambda link: (
                 link.destination.zone == Zone.restricted
                 if link.destination else False
-            ))
+            )
+        )
+
+    def sorted_links_by_priority(
+            self,
+            links: list[Connection]
+            ) -> list[Connection]:
+        return sorted(
+            links, key=lambda link: (
+                link.destination.zone == Zone.priority
+                if link.destination else False
+            ),
+            reverse=True
+        )
 
     def circular_solve(self) -> None:
         turn: int = 0
@@ -184,18 +197,21 @@ class Simulation:
 
         while len(self.map.end_hub.current_drones) != self.map.nb_drones:
 
+            for h in self.map.hubs:
+                if h.zone == Zone.restricted:
+                    for d in h.current_drones:
+                        if d.restricted:
+                            d.restricted = False
+                        else:
+                            d.restricted = True
+
+            moved_this_turn: set[int] = set()
+
             for hub in reversed(self.map.hubs):
                 if hub == self.map.end_hub:
                     continue
                 if not hub.current_drones:
                     continue
-
-                if hub.zone == Zone.restricted:
-                    for d in hub.current_drones:
-                        if d.restricted:
-                            d.restricted = False
-                        else:
-                            d.restricted = True
 
                 for link in links:
                     if link.origin == hub and link.destination:
@@ -212,26 +228,94 @@ class Simulation:
                             link.max_link_capacity, next_hub_capacity
                             )
 
-                        n_drones: int = len(hub.current_drones)
-                        while nb_to_move:
+                        i: int = 0
+
+                        while nb_to_move and i < len(hub.current_drones):
                             if not hub.current_drones:
                                 break
 
-                            if not n_drones:
+                            drone: Drone = hub.current_drones[i]
+
+                            if drone.id in moved_this_turn:
+                                i += 1
+                                continue
+
+                            if drone.restricted:
+                                i += 1
+                                continue
+
+                            hub.current_drones.pop(i)
+                            next_hub.current_drones.append(drone)
+                            drone.zone = next_hub
+                            moved_this_turn.add(drone.id)
+                            nb_to_move -= 1
+
+            turn += 1
+
+            self.drones_moves.append(self.snapshot())
+
+    def priority_solve(self) -> None:
+        turn: int = 0
+
+        links: list[Connection] = \
+            self.sorted_links_by_priority(self.map.connections)
+
+        links = self.sorted_links_by_restriction(links)
+
+        while len(self.map.end_hub.current_drones) != self.map.nb_drones:
+
+            for h in self.map.hubs:
+                if h.zone == Zone.restricted:
+                    for d in h.current_drones:
+                        if d.restricted:
+                            d.restricted = False
+                        else:
+                            d.restricted = True
+
+            moved_this_turn: set[int] = set()
+
+            for hub in reversed(self.map.hubs):
+                if hub == self.map.end_hub:
+                    continue
+                if not hub.current_drones:
+                    continue
+
+                for link in links:
+                    if link.origin == hub and link.destination:
+
+                        if self.is_dead_end(link.destination):
+                            continue
+
+                        next_hub: Hub = link.destination
+
+                        next_hub_capacity: int = \
+                            next_hub.max_drones - len(next_hub.current_drones)
+
+                        nb_to_move: int = min(
+                            link.max_link_capacity, next_hub_capacity
+                            )
+
+                        i: int = 0
+
+                        while nb_to_move and i < len(hub.current_drones):
+                            if not hub.current_drones:
                                 break
 
-                            if hub.current_drones[0].restricted:
-                                restricted: Drone = hub.current_drones.pop(0)
-                                hub.current_drones.append(restricted)
-                                n_drones -= 1
+                            drone: Drone = hub.current_drones[i]
 
-                            else:
-                                drone: Drone = hub.current_drones.pop(0)
-                                next_hub.current_drones.append(drone)
-                                drone.zone = next_hub
+                            if drone.id in moved_this_turn:
+                                i += 1
+                                continue
 
-                                n_drones -= 1
-                                nb_to_move -= 1
+                            if drone.restricted:
+                                i += 1
+                                continue
+
+                            hub.current_drones.pop(i)
+                            next_hub.current_drones.append(drone)
+                            drone.zone = next_hub
+                            moved_this_turn.add(drone.id)
+                            nb_to_move -= 1
 
             turn += 1
 
@@ -262,8 +346,9 @@ if __name__ == "__main__":
     # map = Map('maps/easy/02_simple_fork.txt')
     # map = Map('maps/easy/03_basic_capacity.txt')
     # map = Map('maps/medium/01_dead_end_trap.txt')
-    map = Map('maps/medium/02_circular_loop.txt')
-    # map = Map('maps/test.txt')
+    # map = Map('maps/medium/02_circular_loop.txt')
+    # map = Map('maps/medium/03_priority_puzzle.txt')
+    map = Map('maps/test.txt')
 
     simulation = Simulation(map)
 
@@ -271,12 +356,17 @@ if __name__ == "__main__":
     # for link in simulation.map.connections:
     #     print(link.name)
 
-    # links = simulation.sorted_links_by_restriction(simulation.map.connections)
+    # links = simulation.sorted_links_by_priority(simulation.map.connections)
 
-    # print("\nSorted")
+    # print("\nFirst sort (priority):")
     # for lnk in links:
     #     print(lnk.name)
 
+    # links = simulation.sorted_links_by_restriction(links)
+
+    # print("\nSecond sort (restriction):")
+    # for lk in links:
+    #     print(lk.name)
     # exit()
 
     if not simulation.is_path():
